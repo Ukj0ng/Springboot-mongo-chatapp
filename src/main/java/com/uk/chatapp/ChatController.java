@@ -19,6 +19,7 @@ public class ChatController {
 
     private final ChatRepository chatRepository;
 
+    // 귓속말 할 때 사용
     // produces = MediaType.TEXT_EVENT_STREAM_VALUE: SSE 프로토콜
     @CrossOrigin
     @GetMapping(value = "/sender/{sender}/receiver/{receiver}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -27,12 +28,21 @@ public class ChatController {
             .subscribeOn(Schedulers.boundedElastic());
     }
 
+
+    @CrossOrigin
+    @GetMapping(value = "/chat/roomNum/{roomNum}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Chat> findByUsername(@PathVariable Integer roomNum) {
+        return chatRepository.mFindByRoomNum(roomNum)
+            .subscribeOn(Schedulers.boundedElastic());
+    }
+
+
     // Mono가 return값인 이유는 chat이 저장된 걸 보고 싶어서
     // return void여도 상관 X
     @CrossOrigin
     @PostMapping("/chat")
     public Mono<Chat> setMessage(@RequestBody Chat chat) {
         chat.setCreateAt(LocalDateTime.now());
-        return chatRepository.save(chat);
+        return chatRepository.save(chat);   // Object를 리턴하면 자동으로 JSON 변환 (MessageConverter)
     }
 }
